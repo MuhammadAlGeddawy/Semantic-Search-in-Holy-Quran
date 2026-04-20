@@ -20,8 +20,8 @@ Before you begin, make sure you have:
 ### 1.1 Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/quran-semantic-search.git
-cd quran-semantic-search
+git clone https://github.com/MuhammadAlGeddawy/Semantic-Search-in-Holy-Quran.git
+cd Semantic-Search-in-Holy-Quran
 ```
 
 ### 1.2 Create Virtual Environment (Recommended)
@@ -40,6 +40,13 @@ source venv/bin/activate
 
 ### 1.3 Install Dependencies
 
+**Option A: Install as Package (Recommended)**
+```bash
+pip install --upgrade pip
+pip install -e .
+```
+
+**Option B: Install from requirements only**
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
@@ -64,10 +71,10 @@ data/
 
 ### 2.2 Test Data Loading
 
-Run the data loader script:
+Run the data loader from Python:
 
 ```bash
-python data_loader.py
+python -c "from quran_search.data_loader import load_tanzil_csv; load_tanzil_csv('data/Quran Dataset/csv/qurantexttanzil.csv')"
 ```
 
 **Expected output:**
@@ -90,7 +97,7 @@ If you see errors, check:
 ### 3.1 Open Jupyter Notebook
 
 ```bash
-jupyter notebook quran_semantic_search_v1_complete.ipynb
+jupyter notebook notebooks/quran_semantic_search_v1_complete.ipynb
 ```
 
 ### 3.2 Execute All Cells
@@ -127,7 +134,7 @@ models/
 ### 4.1 Start Streamlit
 
 ```bash
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 
 ### 4.2 Access the Interface
@@ -200,19 +207,25 @@ pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 | File | Purpose |
 |------|---------|
-| `quran_semantic_search_v1_complete.ipynb` | Main evaluation notebook |
-| `app.py` | Streamlit web interface |
-| `data_loader.py` | Data preprocessing utility |
+| `notebooks/quran_semantic_search_v1_complete.ipynb` | Main evaluation notebook |
+| `src/quran_search/app.py` | Streamlit web interface |
+| `streamlit_app.py` | Streamlit entry point (root level) |
+| `src/quran_search/data_loader.py` | Data preprocessing utility |
+| `src/quran_search/search_engine.py` | Core search logic |
 | `requirements.txt` | Python dependencies |
+| `setup.py` | Package installation config |
 | `VERSION_COMPARISON.md` | Detailed version comparison |
 
 ### Key Directories
 
 | Directory | Contents |
 |-----------|----------|
-| `data/` | Raw Quran datasets |
+| `data/` | Raw Quran datasets (ignored in git) |
 | `models/v1/` | Trained models & indices |
-| `data/processed/` | Cleaned data files |
+| `src/quran_search/` | Main package code |
+| `notebooks/` | Jupyter notebooks |
+| `config/` | Configuration modules |
+| `tests/` | Unit tests (placeholder) |
 
 ### Useful Commands
 
@@ -225,13 +238,13 @@ venv\Scripts\activate      # Windows
 pip install -r requirements.txt
 
 # Run notebook
-jupyter notebook quran_semantic_search_v1_complete.ipynb
+jupyter notebook notebooks/quran_semantic_search_v1_complete.ipynb
 
-# Launch web app
-streamlit run app.py
+# Launch web app (new entry point)
+streamlit run streamlit_app.py
 
-# Test data loading
-python data_loader.py
+# Test data loading from package
+python -c "from quran_search.data_loader import load_tanzil_csv; load_tanzil_csv('data/Quran Dataset/csv/qurantexttanzil.csv')"
 ```
 
 ---
@@ -294,8 +307,9 @@ If you're stuck:
 
 1. **Check the README**: Detailed documentation with examples
 2. **Review VERSION_COMPARISON.md**: Understanding the architecture
-3. **Open an issue**: GitHub issues for bugs/questions
-4. **Contact**: [your.email@example.com]
+3. **Read CONTRIBUTING.md**: Contribution guidelines
+4. **Open an issue**: GitHub issues for bugs/questions
+5. **Contact**: Muhammad Al-Geddawy (muhammad.anwar@ejust.edu.eg)
 
 ---
 
