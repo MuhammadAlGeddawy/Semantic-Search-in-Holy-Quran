@@ -1,16 +1,17 @@
 """
 Data Loading Utility for Quran Dataset
 
-This script handles the messy CSV structure from tanzil.net exports
+This module handles the messy CSV structure from tanzil.net exports
 and creates a clean, normalized DataFrame for the search engine.
 
-Author: [Your Name]
+Author: Muhammad Al-Geddawy
 """
 
 import pandas as pd
 import numpy as np
 import os
 from typing import Tuple
+
 
 def load_tanzil_csv(file_path: str) -> pd.DataFrame:
     """
@@ -35,7 +36,7 @@ def load_tanzil_csv(file_path: str) -> pd.DataFrame:
     print(f"   Columns detected: {df.columns.tolist()}")
     
     # Assign column names based on position
-    # Based on your sample: [surah, ayah, text, verse_id, extra]
+    # Based on tanzil format: [surah, ayah, text, verse_id, extra]
     if len(df.columns) >= 4:
         df.columns = ['surah', 'ayah', 'text', 'verse_id'] + [f'extra_{i}' for i in range(len(df.columns) - 4)]
     else:
@@ -72,6 +73,7 @@ def load_tanzil_csv(file_path: str) -> pd.DataFrame:
     
     return df
 
+
 def get_surah_names() -> dict:
     """
     Get dictionary of surah numbers to Arabic names.
@@ -104,59 +106,3 @@ def get_surah_names() -> dict:
         106: "قريش", 107: "الماعون", 108: "الكوثر", 109: "الكافرون", 110: "النصر",
         111: "المسد", 112: "الإخلاص", 113: "الفلق", 114: "الناس"
     }
-
-def prepare_quran_dataset(
-    csv_path: str,
-    output_dir: str = "data/processed"
-) -> Tuple[pd.DataFrame, str]:
-    """
-    Complete pipeline to load and prepare Quran dataset.
-    
-    Args:
-        csv_path: Path to the raw CSV file
-        output_dir: Directory to save processed data
-        
-    Returns:
-        Tuple of (cleaned DataFrame, path to saved CSV)
-    """
-    # Load raw data
-    df = load_tanzil_csv(csv_path)
-    
-    # Add surah names
-    surah_names = get_surah_names()
-    df['surah_name'] = df['surah'].map(surah_names)
-    
-    # Verify all surahs have names
-    missing_names = df[df['surah_name'].isna()]['surah'].unique()
-    if len(missing_names) > 0:
-        print(f"⚠️  Warning: Missing names for surahs: {missing_names}")
-    
-    # Save processed data
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, "quran_clean.csv")
-    df.to_csv(output_path, index=False, encoding='utf-8-sig')
-    
-    print(f"💾 Saved processed data to: {output_path}")
-    
-    # Print statistics
-    print("\n📊 Dataset Statistics:")
-    print(f"   Total verses: {len(df)}")
-    print(f"   Total surahs: {df['surah'].nunique()}")
-    print(f"   Avg verses per surah: {len(df) / df['surah'].nunique():.1f}")
-    print(f"   Longest surah: {df.groupby('surah').size().idxmax()} ({df.groupby('surah').size().max()} verses)")
-    print(f"   Shortest surah: {df.groupby('surah').size().idxmin()} ({df.groupby('surah').size().min()} verses)")
-    
-    return df, output_path
-
-if __name__ == "__main__":
-    # Example usage
-    CSV_PATH = "data/Quran Dataset/csv/qurantexttanzil.csv"
-    
-    if os.path.exists(CSV_PATH):
-        df, saved_path = prepare_quran_dataset(CSV_PATH)
-        
-        print("\n📋 Sample verses:")
-        print(df.head(3)[['surah', 'surah_name', 'ayah', 'text']])
-    else:
-        print(f"❌ File not found: {CSV_PATH}")
-        print("Please update the CSV_PATH variable with the correct path.")

@@ -101,8 +101,8 @@ Interface: Streamlit + Jupyter Notebook
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/quran-semantic-search.git
-cd quran-semantic-search
+git clone https://github.com/MuhammadAlGeddawy/Semantic-Search-in-Holy-Quran.git
+cd Semantic-Search-in-Holy-Quran
 ```
 
 2. **Install dependencies**
@@ -159,7 +159,7 @@ We use **synthetic evaluation** (no manual annotation needed):
 After completing the notebook evaluation:
 
 ```bash
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 
 The app will launch at `http://localhost:8501`

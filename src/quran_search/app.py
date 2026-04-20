@@ -1,20 +1,19 @@
 """
-Quran Semantic Search - Version 1
-Streamlit Web Application
+Quran Semantic Search - Streamlit Web Application
 
-Author: [Your Name]
+Author: Muhammad Al-Geddawy
 Description: Web interface for semantic search over 6,236 Quranic verses
 """
 
 import streamlit as st
 import pandas as pd
 import numpy as np
-import faiss
 import os
-import json
-from sentence_transformers import SentenceTransformer
-import re
 from typing import List, Dict
+
+from .search_engine import SemanticSearchEngine
+from .data_loader import get_surah_names
+
 
 # Page configuration
 st.set_page_config(
@@ -68,133 +67,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ===========================
-# HELPER FUNCTIONS
-# ===========================
-
-@st.cache_data
-def load_surah_names():
-    """Load surah names dictionary"""
-    return {
-        1: "الفاتحة", 2: "البقرة", 3: "آل عمران", 4: "النساء", 5: "المائدة",
-        6: "الأنعام", 7: "الأعراف", 8: "الأنفال", 9: "التوبة", 10: "يونس",
-        11: "هود", 12: "يوسف", 13: "الرعد", 14: "إبراهيم", 15: "الحجر",
-        16: "النحل", 17: "الإسراء", 18: "الكهف", 19: "مريم", 20: "طه",
-        21: "الأنبياء", 22: "الحج", 23: "المؤمنون", 24: "النور", 25: "الفرقان",
-        26: "الشعراء", 27: "النمل", 28: "القصص", 29: "العنكبوت", 30: "الروم",
-        31: "لقمان", 32: "السجدة", 33: "الأحزاب", 34: "سبأ", 35: "فاطر",
-        36: "يس", 37: "الصافات", 38: "ص", 39: "الزمر", 40: "غافر",
-        41: "فصلت", 42: "الشورى", 43: "الزخرف", 44: "الدخان", 45: "الجاثية",
-        46: "الأحقاف", 47: "محمد", 48: "الفتح", 49: "الحجرات", 50: "ق",
-        51: "الذاريات", 52: "الطور", 53: "النجم", 54: "القمر", 55: "الرحمن",
-        56: "الواقعة", 57: "الحديد", 58: "المجادلة", 59: "الحشر", 60: "الممتحنة",
-        61: "الصف", 62: "الجمعة", 63: "المنافقون", 64: "التغابن", 65: "الطلاق",
-        66: "التحريم", 67: "الملك", 68: "القلم", 69: "الحاقة", 70: "المعارج",
-        71: "نوح", 72: "الجن", 73: "المزمل", 74: "المدثر", 75: "القيامة",
-        76: "الإنسان", 77: "المرسلات", 78: "النبأ", 79: "النازعات", 80: "عبس",
-        81: "التكوير", 82: "الإنفطار", 83: "المطففين", 84: "الإنشقاق", 85: "البروج",
-        86: "الطارق", 87: "الأعلى", 88: "الغاشية", 89: "الفجر", 90: "البلد",
-        91: "الشمس", 92: "الليل", 93: "الضحى", 94: "الشرح", 95: "التين",
-        96: "العلق", 97: "القدر", 98: "البينة", 99: "الزلزلة", 100: "العاديات",
-        101: "القارعة", 102: "التكاثر", 103: "العصر", 104: "الهمزة", 105: "الفيل",
-        106: "قريش", 107: "الماعون", 108: "الكوثر", 109: "الكافرون", 110: "النصر",
-        111: "المسد", 112: "الإخلاص", 113: "الفلق", 114: "الناس"
-    }
-
-def normalize_arabic(text: str) -> str:
-    """Normalize Arabic text"""
-    if pd.isna(text):
-        return ""
-    
-    # Remove Arabic diacritics
-    arabic_diacritics = re.compile("""
-                             ّ    | # Tashdid
-                             َ    | # Fatha
-                             ً    | # Tanwin Fath
-                             ُ    | # Damma
-                             ٌ    | # Tanwin Damm
-                             ِ    | # Kasra
-                             ٍ    | # Tanwin Kasr
-                             ْ    | # Sukun
-                             ـ     # Tatwil/Kashida
-                         """, re.VERBOSE)
-    
-    text = re.sub(arabic_diacritics, '', text)
-    text = re.sub("[إأآا]", "ا", text)
-    text = text.replace("ى", "ي")
-    text = text.replace("ة", "ه")
-    text = re.sub(r'\s+', ' ', text).strip()
-    
-    return text
 
 @st.cache_resource
 def load_search_engine(model_dir: str = "models/v1"):
-    """Load the semantic search engine (cached)"""
-    
-    # Load config
-    with open(f"{model_dir}/config.json", 'r', encoding='utf-8') as f:
-        config = json.load(f)
-    
-    # Load model
-    model = SentenceTransformer(config['model_path'])
-    
-    # Load FAISS index
-    index = faiss.read_index(f"{model_dir}/quran_index.faiss")
-    
-    # Load verses dataframe
-    df = pd.read_csv(f"{model_dir}/quran_verses.csv")
-    
-    return model, index, df, config
+    """Load the semantic search engine (cached)."""
+    return SemanticSearchEngine(model_dir)
 
-def search_quran(query: str, model, index, df, top_k: int = 10) -> List[Dict]:
-    """
-    Perform semantic search on Quran verses
-    
-    Args:
-        query: Search query
-        model: Sentence transformer model
-        index: FAISS index
-        df: Verses dataframe
-        top_k: Number of results
-        
-    Returns:
-        List of result dictionaries
-    """
-    # Normalize query if Arabic
-    query_normalized = normalize_arabic(query) if any('\u0600' <= c <= '\u06FF' for c in query) else query
-    
-    # Encode query
-    query_embedding = model.encode([query_normalized], convert_to_numpy=True).astype('float32')
-    
-    # Search
-    distances, indices = index.search(query_embedding, top_k)
-    
-    # Prepare results
-    results = []
-    for rank, (idx, distance) in enumerate(zip(indices[0], distances[0]), start=1):
-        if idx == -1:
-            continue
-        
-        verse = df.iloc[idx]
-        similarity = 1 / (1 + distance)
-        
-        results.append({
-            'rank': rank,
-            'surah': int(verse['surah']),
-            'surah_name': verse['surah_name'],
-            'ayah': int(verse['ayah']),
-            'verse_key': verse['verse_key'],
-            'text': verse['text'],
-            'text_normalized': verse['text_normalized'],
-            'similarity': float(similarity),
-            'distance': float(distance)
-        })
-    
-    return results
-
-# ===========================
-# MAIN APP
-# ===========================
 
 def main():
     # Header
@@ -291,10 +169,10 @@ def main():
                 with st.spinner("🔎 Searching through 6,236 verses..."):
                     try:
                         # Load search engine
-                        model, index, df, config = load_search_engine()
+                        search_engine = load_search_engine()
                         
                         # Perform search
-                        results = search_quran(query, model, index, df, top_k)
+                        results = search_engine.search(query, top_k)
                         
                         # Display results
                         st.success(f"✅ Found {len(results)} relevant verses")
@@ -355,6 +233,7 @@ def main():
             
             The search uses AI to understand meaning, not just match keywords!
             """)
+
 
 if __name__ == "__main__":
     main()
