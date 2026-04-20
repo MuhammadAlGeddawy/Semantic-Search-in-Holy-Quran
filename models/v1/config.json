@@ -1,0 +1,13 @@
+{
+  "model_name": "multilingual-e5-large",
+  "model_path": "intfloat/multilingual-e5-large",
+  "dimension": 1024,
+  "num_verses": 6236,
+  "metrics": {
+    "model_name": "multilingual-e5-large",
+    "mrr@10": 0.29197222222222224,
+    "recall@10": 0.46,
+    "precision@1": 0.23,
+    "dimension": 1024
+  }
+}
